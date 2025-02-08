@@ -34,7 +34,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val swordMode by choices(
         "SwordMode",
-        arrayOf("None", "NCP", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Blink"),
+        arrayOf("None", "NCP", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Blink","PostPlace"),
         "None"
     )
 
@@ -164,6 +164,13 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
         if (heldItem.item is ItemSword && isUsingItem) {
             when (swordMode.lowercase()) {
+                "postplace"->{
+                    if (event.eventState == EventState.PRE) {
+                        sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    } else {
+                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, heldItem, 0f, 0f, 0f))
+                    }
+                }
                 "ncp" ->
                     when (event.eventState) {
                         EventState.PRE -> sendPacket(

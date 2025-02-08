@@ -28,13 +28,18 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.EventState;
 import net.ccbluex.liquidbounce.event.PacketEvent;
+import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler;
 import net.ccbluex.liquidbounce.utils.client.PacketUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.EnumPacketDirection;
+import net.minecraft.network.INetHandler;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.ccbluex.liquidbounce.utils.client.PPSCounter;
+import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -54,17 +59,23 @@ public class MixinNetworkManager {
     @Shadow
     private Channel channel;
 
+    @Shadow private INetHandler packetListener;
+
     @Inject(method = "channelRead0", at = @At("HEAD"), cancellable = true)
     private void read(ChannelHandlerContext context, Packet<?> packet, CallbackInfo callback) {
-        final PacketEvent event = new PacketEvent(packet, EventState.RECEIVE);
-        EventManager.INSTANCE.call(event);
-
-        if (event.isCancelled()) {
+        if (Disabler.INSTANCE.getGrimPost() && Disabler.INSTANCE.getState() && this.packetListener == Minecraft.getMinecraft().getNetHandler()){
+            Disabler.INSTANCE.getPostPackets().add((Packet<INetHandlerPlayClient>) packet);
             callback.cancel();
-            return;
-        }
+        } else {
+            final PacketEvent event = new PacketEvent(packet, EventState.RECEIVE);
+            EventManager.INSTANCE.call(event);
+            if (event.isCancelled()) {
+                callback.cancel();
+                return;
+            }
 
-        PPSCounter.INSTANCE.registerType(PPSCounter.PacketType.RECEIVED);
+            PPSCounter.INSTANCE.registerType(PPSCounter.PacketType.RECEIVED);
+        }
     }
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
