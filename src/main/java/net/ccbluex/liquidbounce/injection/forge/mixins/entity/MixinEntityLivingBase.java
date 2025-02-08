@@ -5,6 +5,8 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.entity;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.EventState;
 import net.ccbluex.liquidbounce.event.JumpEvent;
@@ -32,6 +34,7 @@ import net.minecraft.util.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -70,6 +73,9 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
 
     @Shadow
     protected abstract void updateAITick();
+
+    @Unique
+    private Vec3 quickMarcoBounce$fixMotion = new Vec3(0.0D, 0.0D, 0.0D);
 
     /**
      * @author CCBlueX
@@ -124,6 +130,35 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
             updateAITick();
         }
     }
+
+    @Inject(method = "onLivingUpdate",at = @At(value = "INVOKE", target = "Ljava/lang/Math;abs(D)D",ordinal = 0))
+    private void preFix(CallbackInfo callbackInfo) {
+        quickMarcoBounce$fixMotion = new Vec3(motionX, motionY, motionZ);
+    }
+
+    @Inject(method = "onLivingUpdate",at = @At(value = "INVOKE", target = "Lnet/minecraft/profiler/Profiler;startSection(Ljava/lang/String;)V", ordinal = 0))
+    private void postFix(CallbackInfo callbackInfo) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
+            if (Math.abs(this.quickMarcoBounce$fixMotion.xCoord) < 0.003)
+            {
+                this.quickMarcoBounce$fixMotion.xCoord = 0.0D;
+            }
+
+            if (Math.abs(this.quickMarcoBounce$fixMotion.yCoord) < 0.003)
+            {
+                this.quickMarcoBounce$fixMotion.yCoord = 0.0D;
+            }
+
+            if (Math.abs(this.quickMarcoBounce$fixMotion.zCoord) < 0.003)
+            {
+                this.quickMarcoBounce$fixMotion.zCoord = 0.0D;
+            }
+            this.motionX = this.quickMarcoBounce$fixMotion.xCoord;
+            this.motionY = this.quickMarcoBounce$fixMotion.yCoord;
+            this.motionZ = this.quickMarcoBounce$fixMotion.zCoord;
+        }
+    }
+
 
     @Inject(method = "getLook", at = @At("HEAD"), cancellable = true)
     private void getLook(CallbackInfoReturnable<Vec3> callbackInfoReturnable) {
