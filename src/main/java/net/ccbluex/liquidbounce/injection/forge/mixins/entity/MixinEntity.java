@@ -5,6 +5,8 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.entity;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.RotationSetEvent;
 import net.ccbluex.liquidbounce.event.StrafeEvent;
@@ -234,11 +236,18 @@ public abstract class MixinEntity implements IMixinEntity {
     }
 
     @Inject(method = "getCollisionBorderSize", at = @At("HEAD"), cancellable = true)
-    private void getCollisionBorderSize(final CallbackInfoReturnable<Float> callbackInfoReturnable) {
+    private void getCollisionBorderSize(CallbackInfoReturnable<Float> callbackInfoReturnable) {
         final HitBox hitBox = HitBox.INSTANCE;
 
-        if (hitBox.handleEvents())
+        if (hitBox.handleEvents()) {
             callbackInfoReturnable.setReturnValue(0.1F + hitBox.determineSize((Entity) (Object) this));
+        } else {
+            if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
+                callbackInfoReturnable.setReturnValue(0F);
+            } else {
+                callbackInfoReturnable.setReturnValue(0.1F);
+            }
+        }
     }
 
     @Redirect(method = "setAngles", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/MathHelper;clamp_float(FFF)F"))

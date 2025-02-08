@@ -6,6 +6,7 @@
   "mixins": [
     "block.MixinBlock",
     "block.MixinBlockAnvil",
+    "block.MixinBlockFarmland",
     "block.MixinBlockLadder",
     "block.MixinBlockLiquid",
     "block.MixinBlockModelRenderer",
@@ -44,14 +45,14 @@
     "gui.MixinGuiSpectator",
     "gui.MixinServerSelectionList",
     "item.MixinItem",
+    "item.MixinItemBlock",
     "item.MixinItemRenderer",
     "item.MixinMixinItemStack",
-    "item.MixinItemBlock",
+    "network.MixinC0FPacketConfirmTransaction",
     "network.MixinNetHandlerPlayClient",
     "network.MixinNetworkManager",
     "network.MixinNetworkPlayerInfo",
     "network.MixinS32PacketConfirmTransaction",
-    "network.MixinC0FPacketConfirmTransaction",
     "packets.MixinC00Handshake",
     "render.MixinEffectRenderer",
     "render.MixinEntityRenderer",
@@ -76,6 +77,7 @@
     "world.MixinWorldClient"
   ],
   "client": [
+    "block.MixinBlockLilyPad",
     "block.MixinBlockSlime",
     "gui.MixinGuiAchievement",
     "gui.MixinGuiContainer",

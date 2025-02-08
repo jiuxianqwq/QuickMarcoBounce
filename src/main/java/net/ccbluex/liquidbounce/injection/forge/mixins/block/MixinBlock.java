@@ -57,6 +57,19 @@ public abstract class MixinBlock {
         return null;
     }
 
+    @Shadow
+    protected double minX;
+    @Shadow
+    protected double minY;
+    @Shadow
+    protected double minZ;
+    @Shadow
+    protected double maxX;
+    @Shadow
+    protected double maxY;
+    @Shadow
+    protected double maxZ;
+
     /**
      * @author CCBlueX
      */

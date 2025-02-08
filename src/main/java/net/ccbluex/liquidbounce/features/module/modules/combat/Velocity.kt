@@ -22,6 +22,7 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils.speed
+import net.ccbluex.liquidbounce.utils.rotation.RaycastUtils.raycastEntity
 import net.ccbluex.liquidbounce.utils.rotation.RaycastUtils.runWithModifiedRaycastResult
 import net.ccbluex.liquidbounce.utils.rotation.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
@@ -31,6 +32,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGameOver
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.Packet
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK
@@ -63,7 +66,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             "Reverse", "SmoothReverse", "Jump", "Glitch", "Legit",
             "GhostBlock", "Vulcan", "S32Packet", "MatrixReduce",
             "IntaveReduce", "Delay", "GrimC03", "Hypixel", "HypixelAir",
-            "Click", "BlocksMC", "GrimCombat"
+            "Click", "BlocksMC", "GrimNoXZ"
         ), "Simple"
     )
 
@@ -140,15 +143,14 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val clickRange by float("ClickRange", 3f, 1f..6f) { mode == "Click" }
     private val swingMode by choices("SwingMode", arrayOf("Off", "Normal", "Packet"), "Normal") { mode == "Click" }
 
-    private val attackCountValue by int("Attack Counts", 12, 1..16) { mode == "GrimCombat" }
+    private val attackCountValue by int("Attack Counts", 12, 1..16) { mode == "GrimNoXZ" }
 
     // pit 调成攻击发包调成6
 
-    private val fireCheckValue by boolean("FireCheck", false) { mode == "GrimCombat" }
-    private val waterCheckValue by boolean("WaterCheck", false) { mode == "GrimCombat" }
-    private val fallCheckValue by boolean("FallCheck", false) { mode == "GrimCombat" }
-    private val consumecheck by boolean("ConsumableCheck", false) { mode == "GrimCombat" }
-    private val raycastValue by boolean("Ray cast", false) { mode == "GrimCombat" }
+    private val fireCheckValue by boolean("FireCheck", false) { mode == "GrimNoXZ" }
+    private val waterCheckValue by boolean("WaterCheck", false) { mode == "GrimNoXZ" }
+    private val fallCheckValue by boolean("FallCheck", false) { mode == "GrimNoXZ" }
+    private val consumecheck by boolean("ConsumableCheck", false) { mode == "GrimNoXZ" }
 
     /**
      * VALUES
@@ -364,7 +366,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 }
             }
 
-            "grimcombat" -> {
+            "GrimNoXZ" -> {
                 if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47) {
                     if (velocityInput) {
                         if (attacked) {
@@ -627,7 +629,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     event.cancelEvent()
                 }
 
-                "grimcombat" -> {
+                "GrimNoXZ" -> {
                     if (flags != 0) return@handler
                     if (mc.thePlayer.isDead) return@handler
                     if (mc.currentScreen is GuiGameOver) return@handler
@@ -642,20 +644,26 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         val s12 = (event.packet as S12PacketEntityVelocity)
                         val horizontalStrength =
                             Vector2d(s12.getMotionX().toDouble(), s12.getMotionZ().toDouble()).length()
-//                        if (horizontalStrength <= 1000) return@handler
+                        if (horizontalStrength <= 1000) return@handler
                         val mouse = mc.objectMouseOver
                         velocityInput = true
                         var entity: Entity? = null
                         reduceXZ = 1.0
 
-                        if (mouse.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && mouse.entityHit is EntityLivingBase && mc.thePlayer.getDistanceToEntityBox(
-                                mouse.entityHit
-                            ) <= KillAura.range
-                        ) {
-                            entity = mouse.entityHit
+
+                        var chosenEntity = raycastEntity(
+                            KillAura.range.toDouble(), currentRotation!!.yaw, currentRotation!!.pitch
+                        ) { entity is EntityLivingBase && entity !is EntityArmorStand }
+
+                        if (chosenEntity != null && chosenEntity is EntityLivingBase && (NoFriends.handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
+                            if (entity != chosenEntity) {
+                                entity = chosenEntity
+                            }
                         }
 
-                        if (entity == null && !raycastValue) {
+                        entity == chosenEntity
+
+                        if (entity == null) {
                             val target: Entity? = KillAura.target
                             if (target != null) {
                                 entity = KillAura.target

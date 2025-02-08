@@ -6,6 +6,8 @@
 package net.ccbluex.liquidbounce.injection.forge.mixins.render;
 
 import com.google.common.base.Predicates;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.Render3DEvent;
 import net.ccbluex.liquidbounce.features.module.modules.combat.Backtrack;
@@ -121,9 +123,6 @@ public abstract class MixinEntityRenderer {
         FreeCam.INSTANCE.restoreOriginalPosition();
     }
 
-    /**
-     * @author CCBlueX
-     */
     @Inject(method = "getMouseOver", at = @At("HEAD"), cancellable = true)
     private void getMouseOver(float p_getMouseOver_1_, CallbackInfo ci) {
         Entity entity = mc.getRenderViewEntity();
@@ -208,7 +207,11 @@ public abstract class MixinEntityRenderer {
                 }
             }
 
-            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > (reach.handleEvents() ? reach.getCombatReach() : 3)) {
+            double distance = 3.0D;
+            if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
+                distance = 2.9D;
+            }
+            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > distance) {
                 pointedEntity = null;
                 mc.objectMouseOver = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, Objects.requireNonNull(vec33), null, new BlockPos(vec33));
             }
@@ -225,7 +228,6 @@ public abstract class MixinEntityRenderer {
 
         ci.cancel();
     }
-
     /**
      * @author opZywl
      * @reason Update Light Map
