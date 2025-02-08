@@ -5,6 +5,8 @@
  */
 package net.ccbluex.liquidbounce.utils.extensions
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
+import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.file.FileManager.friendsConfig
 import net.ccbluex.liquidbounce.injection.implementations.IMixinEntity
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
@@ -313,7 +315,7 @@ fun EntityPlayerSP.tryJump() {
 fun EntityPlayerSP.attackEntityWithModifiedSprint(
     entity: Entity, affectMovementBySprint: Boolean? = null, swing: () -> Unit
 ) {
-    swing()
+    if (!ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) swing()
 
     MovementUtils.affectSprintOnAttack = affectMovementBySprint
 
@@ -325,6 +327,8 @@ fun EntityPlayerSP.attackEntityWithModifiedSprint(
     }
 
     MovementUtils.affectSprintOnAttack = null
+
+   if (ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) swing()
 
     CPSCounter.registerClick(CPSCounter.MouseButton.LEFT)
 }

@@ -31,6 +31,7 @@ object PacketUtils : MinecraftInstance, Listenable {
 
     private val queuedPackets = ArrayDeque<Packet<*>>()
     private val queueLock = ReentrantLock()
+    public var pass = false;
 
     fun schedulePacketProcess(elements: Collection<Packet<*>>): Boolean = queueLock.withLock {
         queuedPackets.addAll(elements)
@@ -118,10 +119,14 @@ object PacketUtils : MinecraftInstance, Listenable {
     fun sendPacket(packet: Packet<*>, triggerEvent: Boolean = true) {
         if (triggerEvent) {
             mc.netHandler?.addToSendQueue(packet)
-            return
+            //return
+        } else{
+            pass = true
+            mc.netHandler?.addToSendQueue(packet)
+            pass = false
         }
 
-        val netManager = mc.netHandler?.networkManager ?: return
+/*        val netManager = mc.netHandler?.networkManager ?: return
 
         PPSCounter.registerType(PPSCounter.PacketType.SEND)
         if (netManager.isChannelOpen) {
@@ -131,7 +136,7 @@ object PacketUtils : MinecraftInstance, Listenable {
             netManager.readWriteLock.write {
                 netManager.outboundPacketsQueue += NetworkManager.InboundHandlerTuplePacketListener(packet, null)
             }
-        }
+        }*/
     }
 
     @JvmStatic
