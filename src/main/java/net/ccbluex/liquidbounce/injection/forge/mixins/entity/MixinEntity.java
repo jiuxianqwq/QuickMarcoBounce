@@ -19,6 +19,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
@@ -222,6 +223,10 @@ public abstract class MixinEntity implements IMixinEntity {
 
     @Shadow
     public abstract boolean isInsideOfMaterial(Material materialIn);
+
+    @Shadow public abstract boolean equals(Object p_equals_1_);
+
+    @Shadow public abstract boolean interactFirst(EntityPlayer p_interactFirst_1_);
 
     public int getNextStepDistance() {
         return nextStepDistance;

@@ -53,6 +53,7 @@ import net.ccbluex.liquidbounce.utils.io.MiscUtils
 import net.ccbluex.liquidbounce.utils.kotlin.SharedScopes
 import net.ccbluex.liquidbounce.utils.movement.BPSUtils
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils
+import net.ccbluex.liquidbounce.utils.movement.StuckUtils
 import net.ccbluex.liquidbounce.utils.movement.TimerBalanceUtils
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.render.shader.Background
@@ -164,6 +165,7 @@ object LiquidBounce {
             Fonts.loadFonts()
 
             // Register listeners
+            StuckUtils
             RotationUtils
             ClientFixes
             BungeeCordSpoof

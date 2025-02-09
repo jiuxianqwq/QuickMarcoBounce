@@ -30,6 +30,7 @@ import net.ccbluex.liquidbounce.event.EventState;
 import net.ccbluex.liquidbounce.event.PacketEvent;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler;
 import net.ccbluex.liquidbounce.utils.client.PacketUtils;
+import net.ccbluex.liquidbounce.utils.packet.BlinkUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.EnumPacketDirection;
 import net.minecraft.network.INetHandler;
@@ -63,6 +64,7 @@ public class MixinNetworkManager {
 
     @Inject(method = "channelRead0", at = @At("HEAD"), cancellable = true)
     private void read(ChannelHandlerContext context, Packet<?> packet, CallbackInfo callback) {
+       /*
         if (Disabler.INSTANCE.getGrimPost() && Disabler.INSTANCE.getState() && this.packetListener == Minecraft.getMinecraft().getNetHandler()){
             Disabler.INSTANCE.getPostPackets().add((Packet<INetHandlerPlayClient>) packet);
             callback.cancel();
@@ -76,6 +78,8 @@ public class MixinNetworkManager {
 
             PPSCounter.INSTANCE.registerType(PPSCounter.PacketType.RECEIVED);
         }
+        //这个packet接收的Event放在这里他其实是异步的，不建议，我给你搬个地。
+        */
     }
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
@@ -89,8 +93,13 @@ public class MixinNetworkManager {
                 return;
             }
 
-            PPSCounter.INSTANCE.registerType(PPSCounter.PacketType.SEND);
+            if (!BlinkUtils.onPacket(packet)) {
+                callback.cancel();
+                return;
+            }
         }
+
+        PPSCounter.INSTANCE.registerType(PPSCounter.PacketType.SEND);
 
         if (packet instanceof C08PacketPlayerBlockPlacement){
             C08PacketPlayerBlockPlacement cp = (C08PacketPlayerBlockPlacement) packet;

@@ -9,12 +9,14 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
+import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.utils.client.BlinkUtils
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.SilentHotbar
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils.hasMotion
+import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
 import net.minecraft.item.*
 import net.minecraft.network.handshake.client.C00Handshake
@@ -162,13 +164,14 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             }
         }
 
-        if (heldItem.item is ItemSword && isUsingItem) {
+        if (heldItem.item is ItemSword && isUsingItem && !Gapple.eating) {
             when (swordMode.lowercase()) {
                 "postplace"->{
                     if (event.eventState == EventState.PRE) {
                         sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                     } else {
-                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, heldItem, 0f, 0f, 0f))
+                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
+                        sendOffHandUseItem.sendOffHandUseItem()
                     }
                 }
                 "ncp" ->

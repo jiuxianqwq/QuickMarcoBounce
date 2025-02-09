@@ -15,10 +15,12 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.InventoryMove;
 import net.ccbluex.liquidbounce.features.module.modules.movement.NoSlow;
 import net.ccbluex.liquidbounce.features.module.modules.movement.Sneak;
 import net.ccbluex.liquidbounce.features.module.modules.movement.Sprint;
+import net.ccbluex.liquidbounce.features.module.modules.player.Gapple;
 import net.ccbluex.liquidbounce.features.module.modules.render.FreeCam;
 import net.ccbluex.liquidbounce.features.module.modules.render.NoSwing;
 import net.ccbluex.liquidbounce.utils.attack.CooldownHelper;
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils;
+import net.ccbluex.liquidbounce.utils.movement.StuckUtils;
 import net.ccbluex.liquidbounce.utils.rotation.Rotation;
 import net.ccbluex.liquidbounce.utils.rotation.RotationSettings;
 import net.ccbluex.liquidbounce.utils.rotation.RotationUtils;
@@ -41,6 +43,7 @@ import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
+import net.minecraft.network.play.client.C0CPacketInput;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.*;
 import net.minecraftforge.fml.relauncher.Side;
@@ -123,6 +126,8 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer {
 
     @Shadow
     protected abstract boolean isCurrentViewEntity();
+
+    @Shadow public abstract void onUpdateWalkingPlayer();
 
     /**
      * @author CCBlueX
@@ -390,7 +395,13 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer {
 
         boolean isUsingItem = getHeldItem() != null && (isUsingItem() || (getHeldItem().getItem() instanceof ItemSword && killAura.getBlockStatus()) || NoSlow.INSTANCE.isUNCPBlocking());
 
-        if (isUsingItem && !isRiding()) {
+        if(Gapple.INSTANCE.getState() && Gapple.INSTANCE.getEating()){
+            movementInput.moveStrafe *= 0.2F;
+            movementInput.moveForward *= 0.2F;
+            sprintToggleTimer = 0;
+            modifiedInput.moveStrafe *= 0.2F;
+            modifiedInput.moveForward *= 0.2F;
+        } else if (isUsingItem && !isRiding()) {
             final SlowDownEvent slowDownEvent = new SlowDownEvent(0.2F, 0.2F);
             EventManager.INSTANCE.call(slowDownEvent);
             movementInput.moveStrafe *= slowDownEvent.getStrafe();
@@ -806,6 +817,29 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer {
             ci.cancel();
         }
     }
+
+    @Inject(method = "onUpdate",at = @At(value = "HEAD"), cancellable = true)
+    private void onUpdate(CallbackInfo ci) {
+        if(StuckUtils.INSTANCE.getStuck()){
+            if (StuckUtils.INSTANCE.getMoveTicks() > 0){
+                StuckUtils.INSTANCE.setMoveTicks(StuckUtils.INSTANCE.getMoveTicks() - 1);
+            } else {
+                final PlayerTickEvent tickEvent = new PlayerTickEvent(EventState.PRE);
+                EventManager.INSTANCE.call(tickEvent);
+                final PlayerTickEvent postTickEvent = new PlayerTickEvent(EventState.POST);
+                EventManager.INSTANCE.call(postTickEvent);
+                if (this.worldObj.isBlockLoaded(new BlockPos(this.posX, (double)0.0F, this.posZ))) {
+                    if (this.isRiding()) {
+                        this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));
+                        this.sendQueue.addToSendQueue(new C0CPacketInput(this.moveStrafing, this.moveForward, this.movementInput.jump, this.movementInput.sneak));
+                    } else {
+                        this.onUpdateWalkingPlayer();
+                    }
+                }
+                ci.cancel();
+            }
+        }
+    }//卡空的实现。
 
     @Inject(method = "onUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;onUpdate()V", shift = At.Shift.AFTER, ordinal = 0))
     private void postTickEvent(CallbackInfo ci) {

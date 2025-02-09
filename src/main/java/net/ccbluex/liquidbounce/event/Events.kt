@@ -176,6 +176,8 @@ object StepConfirmEvent : Event()
  */
 object GameTickEvent : Event()
 
+object PreTickEvent : Event()//好吧注入到顶上以防万一，他原本TickEvent不在HEAD
+
 object TickEndEvent : Event()
 
 /**
@@ -252,6 +254,7 @@ internal val ALL_EVENT_CLASSES = arrayOf(
     StrafeEvent::class.java,
     ScreenEvent::class.java,
     AttackEvent::class.java,
+    PreTickEvent::class.java,
     BlockPushEvent::class.java,
     Render3DEvent::class.java,
     MotionEvent::class.java,

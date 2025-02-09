@@ -27,6 +27,7 @@ import net.ccbluex.liquidbounce.utils.client.ClientUtils;
 import net.ccbluex.liquidbounce.utils.client.PPSCounter;
 import net.ccbluex.liquidbounce.utils.inventory.SilentHotbar;
 import net.ccbluex.liquidbounce.utils.io.MiscUtils;
+import net.ccbluex.liquidbounce.utils.packet.BlinkUtils;
 import net.ccbluex.liquidbounce.utils.render.IconUtils;
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister;
 import net.ccbluex.liquidbounce.utils.render.RenderUtils;
@@ -51,6 +52,7 @@ import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Util;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.Logger;
@@ -213,6 +215,8 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "runTick", at = @At("HEAD"))
     private void injectGameRuntimeTicks(CallbackInfo ci) {
+        BlinkUtils.INSTANCE.onTick();
+        EventManager.INSTANCE.call(PreTickEvent.INSTANCE);
         ClientUtils.INSTANCE.setRunTimeTicks(ClientUtils.INSTANCE.getRunTimeTicks() + 1);
         SilentHotbar.INSTANCE.updateSilentSlot();
     }

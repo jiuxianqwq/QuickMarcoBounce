@@ -74,6 +74,8 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
     @Shadow
     protected abstract void updateAITick();
 
+    @Shadow public float moveStrafing;
+    @Shadow public float moveForward;
     @Unique
     private Vec3 quickMarcoBounce$fixMotion = new Vec3(0.0D, 0.0D, 0.0D);
 

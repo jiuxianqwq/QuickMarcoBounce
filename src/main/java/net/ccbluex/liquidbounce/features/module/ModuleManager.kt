@@ -37,6 +37,7 @@ object ModuleManager : Listenable, Collection<Module> by MODULE_REGISTRY {
 
         // Register modules
         val modules = arrayOf(
+            Gapple,
             AbortBreaking,
             Aimbot,
             Ambience,

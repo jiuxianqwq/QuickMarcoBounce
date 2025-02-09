@@ -52,6 +52,7 @@
     "network.MixinNetHandlerPlayClient",
     "network.MixinNetworkManager",
     "network.MixinNetworkPlayerInfo",
+    "network.MixinPacketThreadUtil",
     "network.MixinS32PacketConfirmTransaction",
     "packets.MixinC00Handshake",
     "render.MixinEffectRenderer",

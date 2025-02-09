@@ -58,6 +58,7 @@ public abstract class MixinEntityPlayer extends MixinEntityLivingBase {
 
     @Shadow
     public InventoryPlayer inventory;
+    @Shadow public float experience;
     private ItemStack cooldownStack;
     private int cooldownStackSlot;
 
