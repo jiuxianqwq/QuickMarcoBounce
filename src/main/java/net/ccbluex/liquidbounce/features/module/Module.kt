@@ -157,6 +157,10 @@ open class Module(
         state = !state
     }
 
+    fun toggle(toggle: Boolean) {
+        this.state = toggle
+    }
+
     /**
      * Called when module toggled
      */

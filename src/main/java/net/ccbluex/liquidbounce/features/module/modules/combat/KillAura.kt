@@ -22,6 +22,7 @@ import net.ccbluex.liquidbounce.utils.client.BlinkUtils
 import net.ccbluex.liquidbounce.utils.client.ClientUtils.runTimeTicks
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPackets
+import net.ccbluex.liquidbounce.utils.client.chat
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
@@ -66,12 +67,14 @@ import net.minecraft.network.play.client.C02PacketUseEntity.Action.*
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.network.play.client.C09PacketHeldItemChange
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 
 object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
@@ -138,7 +141,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
 
     // AutoBlock
     val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "QuickMarco", "Fake"), "QuickMarco")
-    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" }
+    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
         "UnblockMode", arrayOf("Stop", "Switch", "Empty"), "Stop"
     ) { (autoBlock == "Packet") ||(autoBlock == "QuickMarco") }
@@ -344,10 +347,13 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
     private val switchTimer = MSTimer()
 
     // Blink AutoBlock
-    private var blinked = false
+    public var blinked = false
 
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
+
+    var slotChangeAutoBlock = false
+    var playerIsBlocking = false
 
     /**
      * Disable kill aura module
@@ -469,7 +475,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
                 }
             }
         }
-
+//TODO
         if (target != null) {
             if (player.getDistanceToEntityBox(target!!) > blockMaxRange && blockStatus) {
                 stopBlocking(true)
@@ -477,6 +483,9 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
             } else {
                 if (autoBlock != "Off" && !releaseAutoBlock) {
                     renderBlocking = true
+                    if (autoBlock != "Off" && (!blinkAutoBlock  || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
+                        startBlocking(target!!, interactAutoBlock, autoBlock == "Fake")
+                    }
                 }
             }
 
@@ -839,6 +848,15 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
         if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
         }
+        if (autoBlock != "Off" && slotChangeAutoBlock && (!blinked || !BlinkUtils.isBlinking)) {
+            if(autoBlock == "QuickMarco"){
+                sendOffHandUseItem()
+            }else if (autoBlock == "Packet") {
+                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+            }
+            slotChangeAutoBlock = false
+            chat("发送防砍包")
+        }
 
         resetLastAttackedTicks()
     }
@@ -1118,6 +1136,13 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
     val onPacket = handler<PacketEvent> { event ->
         val player = mc.thePlayer ?: return@handler
         val packet = event.packet
+
+        if (event.packet is C09PacketHeldItemChange && autoBlock != "OFF"){
+            if(mc.thePlayer.inventory.getStackInSlot(event.packet.slotId).item is ItemSword){
+                slotChangeAutoBlock = true
+                chat("切换物品到剑")
+            }
+        }
 
         if (autoBlock == "Off" || !blinkAutoBlock || !blinked) return@handler
 

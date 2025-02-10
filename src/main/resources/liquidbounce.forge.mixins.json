@@ -48,6 +48,7 @@
     "item.MixinItemBlock",
     "item.MixinItemRenderer",
     "item.MixinMixinItemStack",
+    "network.MixinC08PacketPlayerBlockPlacement",
     "network.MixinC0FPacketConfirmTransaction",
     "network.MixinNetHandlerPlayClient",
     "network.MixinNetworkManager",

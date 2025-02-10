@@ -9,11 +9,19 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.autoBlock
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.blinked
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.slotChangeAutoBlock
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.client.PacketUtils
+import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.client.chat
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.movement.StuckUtils
 import net.ccbluex.liquidbounce.utils.packet.BlinkUtils
+import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
 import net.minecraft.network.play.client.*
 import net.minecraft.util.BlockPos
@@ -21,6 +29,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.Mod.EventHandler
 
 object Gapple : Module("Gapple",Category.PLAYER) {
+//    private val heal by int("health", 20, 0..40)
     private val sendDelay by int("SendDelay",3,1..10)
     private val sendOnceTicks = 1;
     private val stopMove by boolean("Stuck",false)
@@ -37,6 +46,7 @@ object Gapple : Module("Gapple",Category.PLAYER) {
 
     var eating: Boolean = false //强制减速了。
     var pulsing: Boolean = false
+    var target: EntityLivingBase? = null
 
 
     override fun onEnable() {
@@ -66,6 +76,10 @@ object Gapple : Module("Gapple",Category.PLAYER) {
     }
 
     val onTick = handler<PreTickEvent> {
+        if (!eating) {
+            target = KillAura.target
+        }
+
         if (MinecraftInstance.mc.thePlayer == null || MinecraftInstance.mc.thePlayer.isDead) {
             BlinkUtils.stopBlink()
             state = false
@@ -100,14 +114,15 @@ object Gapple : Module("Gapple",Category.PLAYER) {
             }
         } else {
             eating = true
+            chat("开始吃")
         }
         if (c03s >= 32) {
             eating = false
             pulsing = true
             BlinkUtils.resetBlackList()
-            PacketUtils.sendPacket(C09PacketHeldItemChange(slot), false)
+            sendPacket(C09PacketHeldItemChange(slot), false)
             println("Start!")
-            PacketUtils.sendPacket(
+            sendPacket(
                 C08PacketPlayerBlockPlacement(
                     MinecraftInstance.mc.thePlayer.inventoryContainer.getSlot(
                         slot + 36
@@ -115,14 +130,15 @@ object Gapple : Module("Gapple",Category.PLAYER) {
                 ), false
             )
             if (ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
-                PacketUtils.sendPacket(
+                sendPacket(
                     C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, null, 0.0f, 0.0f, 0.0f)
                     , false
                 )
             }
             BlinkUtils.stopBlink()
             println("Stop!")
-            PacketUtils.sendPacket(C09PacketHeldItemChange(MinecraftInstance.mc.thePlayer.inventory.currentItem), false)
+            chat("吃完了")
+            sendPacket(C09PacketHeldItemChange(MinecraftInstance.mc.thePlayer.inventory.currentItem), false)
             pulsing = false
             if (autoGapple) {
                 c03s = 0
@@ -134,6 +150,15 @@ object Gapple : Module("Gapple",Category.PLAYER) {
                 }
             } else {
                 state = false
+            }
+            if (autoBlock != "Off" && (!blinked || !net.ccbluex.liquidbounce.utils.client.BlinkUtils.isBlinking) && target != null) {
+                if(autoBlock == "QuickMarco"){
+                    sendOffHandUseItem()
+                }else if (autoBlock == "Packet") {
+                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                }
+                slotChangeAutoBlock = false
+                chat("发送防砍包")
             }
             return@handler
         }
