@@ -4,9 +4,7 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.config.BoolValue
 import net.ccbluex.liquidbounce.config.IntValue
-import net.ccbluex.liquidbounce.event.PreTickEvent
-import net.ccbluex.liquidbounce.event.UpdateEvent
-import net.ccbluex.liquidbounce.event.handler
+import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
@@ -32,7 +30,8 @@ object Gapple : Module("Gapple",Category.PLAYER) {
 //    private val heal by int("health", 20, 0..40)
     private val sendDelay by int("SendDelay",3,1..10)
     private val sendOnceTicks = 1;
-    private val stopMove by boolean("Stuck",false)
+    private val stuck by boolean("Stuck",false)
+    private val stopMove by boolean("StopMove",false)
 
     var noCancelC02 = false//
     var noC02 = false//这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
@@ -70,7 +69,7 @@ object Gapple : Module("Gapple",Category.PLAYER) {
             BlinkUtils.stopBlink()
         }
 
-        if (stopMove) {
+        if (stuck) {
             StuckUtils.stopStuck()
         }
     }
@@ -90,7 +89,7 @@ object Gapple : Module("Gapple",Category.PLAYER) {
             return@handler
         }
         if (eating) {
-            if (stopMove) {
+            if (stuck) {
                 StuckUtils.stuck()
             }
             if (!BlinkUtils.blinking) {
@@ -167,6 +166,13 @@ object Gapple : Module("Gapple",Category.PLAYER) {
             for (i in 0..<sendOnceTicks) {
                 BlinkUtils.releasePacket(true)
             }
+        }
+    }
+
+    val onMovementInput = handler<MovementInputEvent> { event ->
+        if(eating && stopMove){
+            event.originalInput.moveStrafe = 0F
+            event.originalInput.moveForward = 0F
         }
     }
 }
