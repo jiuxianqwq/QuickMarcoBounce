@@ -76,8 +76,6 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
 
     @Shadow public float moveStrafing;
     @Shadow public float moveForward;
-    @Unique
-    private Vec3 quickMarcoBounce$fixMotion = new Vec3(0.0D, 0.0D, 0.0D);
 
     /**
      * @author CCBlueX
@@ -133,34 +131,14 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
         }
     }
 
-    @Inject(method = "onLivingUpdate",at = @At(value = "INVOKE", target = "Ljava/lang/Math;abs(D)D",ordinal = 0))
-    private void preFix(CallbackInfo callbackInfo) {
-        quickMarcoBounce$fixMotion = new Vec3(motionX, motionY, motionZ);
-    }
-
-    @Inject(method = "onLivingUpdate",at = @At(value = "INVOKE", target = "Lnet/minecraft/profiler/Profiler;startSection(Ljava/lang/String;)V", ordinal = 0))
-    private void postFix(CallbackInfo callbackInfo) {
+    @ModifyConstant(method = "onLivingUpdate", constant = @Constant(doubleValue = 0.005D))
+    private double modifyMotionCondition(double constant) {
         if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
-            if (Math.abs(this.quickMarcoBounce$fixMotion.xCoord) < 0.003)
-            {
-                this.quickMarcoBounce$fixMotion.xCoord = 0.0D;
-            }
-
-            if (Math.abs(this.quickMarcoBounce$fixMotion.yCoord) < 0.003)
-            {
-                this.quickMarcoBounce$fixMotion.yCoord = 0.0D;
-            }
-
-            if (Math.abs(this.quickMarcoBounce$fixMotion.zCoord) < 0.003)
-            {
-                this.quickMarcoBounce$fixMotion.zCoord = 0.0D;
-            }
-            this.motionX = this.quickMarcoBounce$fixMotion.xCoord;
-            this.motionY = this.quickMarcoBounce$fixMotion.yCoord;
-            this.motionZ = this.quickMarcoBounce$fixMotion.zCoord;
+            return 0.003D;
+        } else {
+            return constant;
         }
     }
-
 
     @Inject(method = "getLook", at = @At("HEAD"), cancellable = true)
     private void getLook(CallbackInfoReturnable<Vec3> callbackInfoReturnable) {
