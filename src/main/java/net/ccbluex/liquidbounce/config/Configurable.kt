@@ -20,7 +20,7 @@ open class Configurable(
     name, mutableListOf()
 ) {
 
-    val values: List<Value<*>>
+    open val values: MutableList<Value<*>>
         get() = this.get()
 
     fun addValue(value: Value<*>) = apply {
@@ -130,4 +130,8 @@ open class Configurable(
         name: String, value: Int, rainbow: Boolean = false, showPicker: Boolean = false, isSupported: (() -> Boolean)? = null
     ) = color(name, Color(value, true), rainbow, showPicker, isSupported)
 
+    protected fun <T : Configurable> tree(configurable: T): T {
+        addValues(configurable.values)
+        return configurable
+    }
 }

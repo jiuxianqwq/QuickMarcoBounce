@@ -6,6 +6,8 @@
 package net.ccbluex.liquidbounce.features.module
 
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
+import net.ccbluex.liquidbounce.config.Choice
+import net.ccbluex.liquidbounce.config.ChoiceConfigurable
 import net.ccbluex.liquidbounce.config.Configurable
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
@@ -27,6 +29,7 @@ import net.ccbluex.liquidbounce.utils.extensions.toLowerCamelCase
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.timing.TickedActions.clearTicked
 import org.lwjgl.input.Keyboard
+import org.lwjgl.opengl.Display
 
 private val SPLIT_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
 
@@ -184,6 +187,16 @@ open class Module(
 
     val isActive
         get() = !gameDetecting || !onlyInGameValue.get() || GameDetector.isInGame()
+
+
+    protected fun <T : Choice> choices(
+        name: String,
+        array: Array<T>,
+        value: T = array[0],
+        display: (() -> Boolean)? = null
+    ) = ChoiceConfigurable(name, array, value, this, display).apply {
+        tree(this)
+    }
 
     /**
      * Events should be handled when module is enabled
