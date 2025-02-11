@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
+import io.netty.buffer.Unpooled
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -19,6 +20,7 @@ import net.ccbluex.liquidbounce.utils.movement.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
 import net.minecraft.item.*
+import net.minecraft.network.PacketBuffer
 import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.DROP_ITEM
@@ -32,11 +34,12 @@ import net.minecraft.network.status.server.S01PacketPong
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 
+
 object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val swordMode by choices(
         "SwordMode",
-        arrayOf("None", "NCP", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Blink","PostPlace"),
+        arrayOf("None", "NCP", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Blink","PostPlace", "GrimAC"),
         "None"
     )
 
@@ -166,14 +169,25 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
         if (heldItem.item is ItemSword && isUsingItem && !Gapple.eating) {
             when (swordMode.lowercase()) {
-                "postplace"->{
+                "postplace" ->
                     if (event.eventState == EventState.PRE) {
                         sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                     } else {
                         sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
                         sendOffHandUseItem.sendOffHandUseItem()
                     }
-                }
+
+                "grimac" ->
+                    if (event.eventState == EventState.PRE) {
+                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                        mc.netHandler.addToSendQueue(C17PacketCustomPayload("许锦良", PacketBuffer(Unpooled.buffer())))
+                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                    } else {
+                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
+                        sendOffHandUseItem.sendOffHandUseItem()
+                    }
+
+
                 "ncp" ->
                     when (event.eventState) {
                         EventState.PRE -> sendPacket(

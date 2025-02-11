@@ -9,6 +9,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
@@ -68,7 +69,7 @@ object AutoProjectile : Module("AutoProjectile", Category.COMBAT) {
                 throwProjectile = true
             }
 
-            if (throwProjectile) {
+            if (throwProjectile && !Gapple.eating) {
                 val randomThrowDelay = throwDelay.random()
 
                 if (throwTimer.hasTimePassed(randomThrowDelay)) {

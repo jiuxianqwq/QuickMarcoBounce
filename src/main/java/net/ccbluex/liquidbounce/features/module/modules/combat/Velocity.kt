@@ -141,6 +141,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val clickRange by float("ClickRange", 3f, 1f..6f) { mode == "Click" }
     private val swingMode by choices("SwingMode", arrayOf("Off", "Normal", "Packet"), "Normal") { mode == "Click" }
 
+    private val grimrange by float("Range", 3.5f, 0f..6f) { mode == "GrimCombat" }
     private val attackCountValue by int("Attack Counts", 12, 1..16) { mode == "GrimCombat" }
 
     // pit 调成攻击发包调成6
@@ -659,7 +660,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
                         if (entity == null && !raycastValue) {
                             val target: Entity? = KillAura.target
-                            if (target != null) {
+                            if (target != null && mc.thePlayer.getDistanceToEntityBox(target) <= grimrange) {
                                 entity = KillAura.target
                             }
                         }

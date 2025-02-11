@@ -58,7 +58,7 @@ class GuiMainMenu : AbstractScreen() {
             3F
         )
 
-        Fonts.fontBold180.drawCenteredString(CLIENT_NAME, width / 2F, height / 8F, 4673984, true)
+        Fonts.fontBold180.drawCenteredString("QuickMarcoBounce", width / 2F, height / 8F, 4673984, true)
         Fonts.fontSemibold35.drawCenteredString(
             clientVersionText,
             width / 2F + 148,
