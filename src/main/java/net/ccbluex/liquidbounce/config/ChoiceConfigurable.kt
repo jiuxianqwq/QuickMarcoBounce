@@ -16,18 +16,18 @@ open class ChoiceConfigurable<T: Choice>(
 ) : Configurable(name) {
     var current = default
 
-    val mode by +ListValue(name, choices.map { it.name }.toTypedArray(), default.name)
+    val select by +ListValue(name, choices.map { it.name }.toTypedArray(), default.name)
         .onChange { old, new ->
             choices.find { it.name.equals(old, true) }?.disable()
+            new
+        }
+        .onChanged { new ->
             val newChoice = choices.find { it.name.equals(new, true)} ?: choices[0]
             current = newChoice.apply { enable() }
-            new
         }
         .setSupport {
             displayable.invoke()
         }
-
-    fun getCurrentName() = current.name
 
     override val values: MutableList<Value<*>>
         get() = super.values.also {

@@ -25,5 +25,5 @@ object NoWeb : Module("NoWeb", Category.MOVEMENT) {
     ), NoWebNone)
 
     override val tag
-        get() = mode.getCurrentName()
+        get() = mode.select
 }
