@@ -5,14 +5,16 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.intave
 
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.NoWebMode
 
-object IntaveOld : NoWebMode("IntaveOld") {
-    override fun onUpdate() {
-        val thePlayer = mc.thePlayer ?: return
+object NoWebIntaveOld : NoWebMode("IntaveOld") {
+    private val onUpdate = handler<UpdateEvent> {
+        val thePlayer = mc.thePlayer ?: return@handler
 
         if (!thePlayer.isInWeb) {
-            return
+            return@handler
         }
 
         if (thePlayer.movementInput.moveStrafe == 0.0F && mc.gameSettings.keyBindForward.isKeyDown && thePlayer.isCollidedVertically) {

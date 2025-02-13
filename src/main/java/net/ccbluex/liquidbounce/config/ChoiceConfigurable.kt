@@ -12,7 +12,7 @@ open class ChoiceConfigurable<T: Choice>(
     val choices: Array<T>,
     default: T = choices[0],
     val listenable: Listenable? = null,
-    displayable: (() -> Boolean)? = null
+    displayable: (() -> Boolean) = { true }
 ) : Configurable(name) {
     var current = default
 
@@ -24,8 +24,10 @@ open class ChoiceConfigurable<T: Choice>(
             new
         }
         .setSupport {
-            displayable?.invoke() ?: true
+            displayable.invoke()
         }
+
+    fun getCurrentName() = current.name
 
     override val values: MutableList<Value<*>>
         get() = super.values.also {

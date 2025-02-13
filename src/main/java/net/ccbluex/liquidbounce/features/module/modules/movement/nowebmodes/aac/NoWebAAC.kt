@@ -5,21 +5,19 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.aac
 
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.NoWebMode
-import net.ccbluex.liquidbounce.utils.extensions.tryJump
 
-object LAAC : NoWebMode("LAAC") {
-    override fun onUpdate() {
+object NoWebAAC : NoWebMode("AAC") {
+    private val onUpdate = handler<UpdateEvent> {
         if (!mc.thePlayer.isInWeb) {
-            return
+            return@handler
         }
 
-        mc.thePlayer.jumpMovementFactor = if (mc.thePlayer.movementInput.moveStrafe != 0f) 1f else 1.21f
+        mc.thePlayer.jumpMovementFactor = 0.59f
 
         if (!mc.gameSettings.keyBindSneak.isKeyDown)
             mc.thePlayer.motionY = 0.0
-
-        if (mc.thePlayer.onGround)
-            mc.thePlayer.tryJump()
     }
 }

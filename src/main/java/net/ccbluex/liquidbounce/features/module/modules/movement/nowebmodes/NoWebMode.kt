@@ -1,7 +1,10 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes
 
-import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
+import net.ccbluex.liquidbounce.config.Choice
+import net.ccbluex.liquidbounce.config.ChoiceConfigurable
+import net.ccbluex.liquidbounce.features.module.modules.movement.NoWeb
 
-open class NoWebMode(val modeName: String) : MinecraftInstance {
-    open fun onUpdate() {}
+open class NoWebMode(name: String) : Choice(name) {
+    override val choices: ChoiceConfigurable<*>
+        get() = NoWeb.mode
 }
