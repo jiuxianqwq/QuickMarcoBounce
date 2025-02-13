@@ -18,8 +18,8 @@ open class ChoiceConfigurable<T: Choice>(
 
     val mode by +ListValue(name, choices.map { it.name }.toTypedArray(), default.name)
         .onChange { old, new ->
-            choices.find { it.name == old }?.disable()
-            val newChoice = choices.find { it.name == new } ?: choices[0]
+            choices.find { it.name.equals(old, true) }?.disable()
+            val newChoice = choices.find { it.name.equals(new, true)} ?: choices[0]
             current = newChoice.apply { enable() }
             new
         }
