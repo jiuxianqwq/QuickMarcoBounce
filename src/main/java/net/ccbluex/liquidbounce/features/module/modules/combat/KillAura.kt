@@ -480,7 +480,8 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
             if (player.getDistanceToEntityBox(target!!) > blockMaxRange && blockStatus) {
                 stopBlocking(true)
                 return@handler
-            } else {
+            }
+            if (player.getDistanceToEntityBox(target!!) <= blockMaxRange && !blockStatus) {
                 if (autoBlock != "Off" && !releaseAutoBlock) {
                     renderBlocking = true
                     if (autoBlock != "Off" && (!blinkAutoBlock  || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
@@ -855,7 +856,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
             }
             slotChangeAutoBlock = false
-            chat("发送防砍包")
+//            chat("发送防砍包")
         }
 
         resetLastAttackedTicks()
@@ -1140,7 +1141,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
         if (event.packet is C09PacketHeldItemChange && autoBlock != "OFF"){
             if(mc.thePlayer.inventory.getStackInSlot(event.packet.slotId).item is ItemSword){
                 slotChangeAutoBlock = true
-                chat("切换物品到剑")
+//                chat("切换物品到剑")
             }
         }
 

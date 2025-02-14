@@ -142,7 +142,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val swingMode by choices("SwingMode", arrayOf("Off", "Normal", "Packet"), "Normal") { mode == "Click" }
 
     private val grimrange by float("Range", 3.5f, 0f..6f) { mode == "GrimCombat" }
-    private val attackCountValue by int("Attack Counts", 12, 1..16) { mode == "GrimCombat" }
+    private val attackCountValue by int("Attack Counts", 5, 1..16) { mode == "GrimCombat" }
 
     // pit 调成攻击发包调成6
 
@@ -191,7 +191,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     var velocityInput: Boolean = false
     private const val grim_1_17Velocity = false
     private var attacked = false
-    private var reduceXZ = 0.0
+    private var reduceXZ = 1.00000
     private const val flags = 0
     var velX = 0
     var velY = 0
@@ -368,26 +368,27 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 }
             }
 
-//            "grimcombat" -> {
-//                if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47) {
-//                    if (velocityInput) {
-//                        if (attacked) {
-//                            mc.thePlayer.motionX *= reduceXZ
-//                            mc.thePlayer.motionZ *= reduceXZ
-//                            attacked = false
-//                        }
-//                        if (mc.thePlayer.hurtTime === 0) {
-//                            velocityInput = false
-//                        }
-//                    }
-//                } else {
-//                    //The velocity mode 1.8.9 ok!
-//                    if (mc.thePlayer.hurtTime > 0 && mc.thePlayer.onGround) {
-//                        mc.thePlayer.addVelocity(-1.3E-10, -1.3E-10, -1.3E-10)
-//                        mc.thePlayer.isSprinting = false
-//                    }
-//                }
-//            }
+            "grimcombat" -> {
+                if (attacked) {
+                    if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47) {
+                        mc.thePlayer.motionX = velX * reduceXZ / 8000.0
+                        mc.thePlayer.motionY = velY / 8000.0
+                        mc.thePlayer.motionZ = velZ * reduceXZ / 8000.0
+                        attacked = false
+                        reduceXZ = 1.00000
+                        if (mc.thePlayer.hurtTime === 0) {
+                            velocityInput = false
+                        }
+                    } else {
+                        //The velocity mode 1.8.9 ok!
+                        if (mc.thePlayer.hurtTime > 0 && mc.thePlayer.onGround) {
+                            mc.thePlayer.addVelocity(-1.3E-10, -1.3E-10, -1.3E-10)
+                            mc.thePlayer.isSprinting = false
+                        }
+                    }
+                }
+
+            }
         }
     }
 
@@ -499,10 +500,73 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         return Math.floorMod(moveYaw.toInt(), 360).toDouble()
     }
 
-    val onPacket = handler<PacketEvent>(priority = 1) { event ->
+    val onPacket = handler<PacketEvent> { event ->
         val thePlayer = mc.thePlayer ?: return@handler
 
         val packet = event.packet
+
+        if (mode.lowercase() == "grimcombat") {
+        if (mc.thePlayer.isDead) return@handler
+        if (mc.currentScreen is GuiGameOver) return@handler
+        if (mc.playerController.currentGameType === WorldSettings.GameType.SPECTATOR) return@handler
+        if (mc.thePlayer.isOnLadder) return@handler
+        if (mc.thePlayer.isBurning && fireCheckValue) return@handler
+        if (mc.thePlayer.isInWater && waterCheckValue) return@handler
+        if (mc.thePlayer.fallDistance > 1.5 && fallCheckValue) return@handler
+        if (mc.thePlayer.isEating && consumecheck) return@handler
+        if (soulSandCheck()) return@handler
+        if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
+//            chat("触发反击退但还没攻击")
+            val s12 = (event.packet as S12PacketEntityVelocity)
+            val horizontalStrength =
+                Vector2d(s12.getMotionX().toDouble(), s12.getMotionZ().toDouble()).length()
+            if (horizontalStrength <= 1000) return@handler
+            val mouse = mc.objectMouseOver
+            velocityInput = true
+            var entity: Entity? = null
+            reduceXZ = 1.0
+
+            if (mouse.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && mouse.entityHit is EntityLivingBase && mc.thePlayer.getDistanceToEntityBox(
+                    mouse.entityHit
+                ) <= KillAura.range
+            ) {
+                entity = mouse.entityHit
+            }
+
+            if (entity == null && !raycastValue) {
+                val target: Entity? = KillAura.target
+                if (target != null && mc.thePlayer.getDistanceToEntityBox(target) <= grimrange) {
+                    entity = KillAura.target
+                }
+            }
+
+            val state = mc.thePlayer.serverSprintState
+            if (entity != null) {
+                if (!state) {
+                    sendPackets(C0BPacketEntityAction(mc.thePlayer, START_SPRINTING))
+                }
+                val count = attackCountValue
+                for (i in 1..count) {
+                    if (ViaLoadingBase.getInstance().targetVersion.olderThanOrEqualTo(ProtocolVersion.v1_8)) {
+                        mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
+                        mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
+                    } else {
+                        mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
+                        mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
+                        reduceXZ *= 0.6
+                    }
+                }
+                if (!state) {
+                    sendPackets(C0BPacketEntityAction(mc.thePlayer, STOP_SPRINTING))
+                }
+                velX = event.packet.motionX
+                velY = event.packet.motionY
+                velZ = event.packet.motionZ
+                attacked = true
+                event.cancelEvent()
+            }
+        }
+    }
 
         if (!handleEvents())
             return@handler
@@ -631,83 +695,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     event.cancelEvent()
                 }
 
-                "grimcombat" -> {
-                    if (mc.thePlayer.isDead) return@handler
-                    if (mc.currentScreen is GuiGameOver) return@handler
-                    if (mc.playerController.currentGameType === WorldSettings.GameType.SPECTATOR) return@handler
-                    if (mc.thePlayer.isOnLadder) return@handler
-                    if (mc.thePlayer.isBurning && fireCheckValue) return@handler
-                    if (mc.thePlayer.isInWater && waterCheckValue) return@handler
-                    if (mc.thePlayer.fallDistance > 1.5 && fallCheckValue) return@handler
-                    if (mc.thePlayer.isEating && consumecheck) return@handler
-                    if (soulSandCheck()) return@handler
-                    if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
-                        val s12 = (event.packet as S12PacketEntityVelocity)
-                        val horizontalStrength =
-                            Vector2d(s12.getMotionX().toDouble(), s12.getMotionZ().toDouble()).length()
-//                        if (horizontalStrength <= 1000) return@handler
-                        val mouse = mc.objectMouseOver
-                        velocityInput = true
-                        var entity: Entity? = null
-                        reduceXZ = 1.0
 
-                        if (mouse.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && mouse.entityHit is EntityLivingBase && mc.thePlayer.getDistanceToEntityBox(
-                                mouse.entityHit
-                            ) <= KillAura.range
-                        ) {
-                            entity = mouse.entityHit
-                        }
-
-                        if (entity == null && !raycastValue) {
-                            val target: Entity? = KillAura.target
-                            if (target != null && mc.thePlayer.getDistanceToEntityBox(target) <= grimrange) {
-                                entity = KillAura.target
-                            }
-                        }
-
-                        val state = mc.thePlayer.serverSprintState
-
-                        if (entity != null) {
-                            if (!state) {
-                                sendPackets(C0BPacketEntityAction(mc.thePlayer, START_SPRINTING))
-                            }
-                            val count = attackCountValue
-                            for (i in 1..count) {
-                                if (ViaLoadingBase.getInstance().targetVersion.olderThanOrEqualTo(ProtocolVersion.v1_8)) {
-                                    mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
-                                    mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-                                } else {
-                                    mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-                                    mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
-                                }
-                            }
-                            if (!state) {
-                                sendPackets(C0BPacketEntityAction(mc.thePlayer, STOP_SPRINTING))
-                            }
-                            attacked = true
-                            reduceXZ = 0.07776
-                            event.cancelEvent()
-                            if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47) {
-                                if (attacked) {
-                                    mc.thePlayer.motionX = event.packet.motionX * reduceXZ / 8000.0
-                                    mc.thePlayer.motionY = event.packet.motionY / 8000.0
-                                    mc.thePlayer.motionZ = event.packet.motionZ * reduceXZ / 8000.0
-                                    attacked = false
-                                }
-                                if (mc.thePlayer.hurtTime === 0) {
-                                    velocityInput = false
-                                }
-
-                            } else {
-                                //The velocity mode 1.8.9 ok!
-                                if (mc.thePlayer.hurtTime > 0 && mc.thePlayer.onGround) {
-                                    mc.thePlayer.addVelocity(-1.3E-10, -1.3E-10, -1.3E-10)
-                                    mc.thePlayer.isSprinting = false
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 

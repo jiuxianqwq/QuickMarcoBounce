@@ -78,6 +78,14 @@ object Gapple : Module("Gapple",Category.PLAYER) {
         if(mc.thePlayer.health < heal) {
             if (!eating) {
                 target = KillAura.target
+
+                c03s = 0
+
+                slot = InventoryUtils.findItem(36, 45, Items.golden_apple)!!
+
+                if (slot != -1) {
+                    slot = slot - 36
+                }
             }
 
             if (MinecraftInstance.mc.thePlayer == null || MinecraftInstance.mc.thePlayer.isDead) {
@@ -114,7 +122,7 @@ object Gapple : Module("Gapple",Category.PLAYER) {
                 }
             } else {
                 eating = true
-                chat("开始吃")
+//                chat("开始吃")
             }
             if (c03s >= 32) {
                 eating = false
@@ -136,7 +144,7 @@ object Gapple : Module("Gapple",Category.PLAYER) {
                 }
                 BlinkUtils.stopBlink()
                 println("Stop!")
-                chat("吃完了")
+//                chat("吃完了")
                 sendPacket(C09PacketHeldItemChange(MinecraftInstance.mc.thePlayer.inventory.currentItem), false)
                 pulsing = false
                 if (autoGapple) {
@@ -150,15 +158,14 @@ object Gapple : Module("Gapple",Category.PLAYER) {
                 } else {
                     state = false
                 }
-                if (autoBlock != "Off" && (!blinked || !net.ccbluex.liquidbounce.utils.client.BlinkUtils.isBlinking) && target != null) {
-                    if (autoBlock == "QuickMarco") {
-                        sendOffHandUseItem()
-                    } else if (autoBlock == "Packet") {
-                        sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                    }
-                    slotChangeAutoBlock = false
-                    chat("发送防砍包")
-                }
+//                if (autoBlock != "Off" && (!blinked || !net.ccbluex.liquidbounce.utils.client.BlinkUtils.isBlinking) && target != null) {
+//                    if (autoBlock == "QuickMarco") {
+//                        sendOffHandUseItem()
+//                    } else if (autoBlock == "Packet") {
+//                        sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+//                    }
+////                    chat("发送防砍包")
+//                }
                 return@handler
             }
 
