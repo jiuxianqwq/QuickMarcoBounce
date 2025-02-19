@@ -11,7 +11,7 @@ open class ToggleConfigurable(
     name: String,
     value: Boolean,
     private val listenable: Listenable? = null,
-    displayable: (() -> Boolean)? = null
+    displayable: (() -> Boolean) = { true }
 ) : Configurable(name), Listenable {
 
     val enable by +BoolValue(name, value)
@@ -24,7 +24,7 @@ open class ToggleConfigurable(
             new
         }
         .setSupport {
-            displayable?.invoke() ?: true
+            displayable.invoke()
         }
 
     open fun enable() {}
