@@ -5,13 +5,15 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other
 
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.NoWebMode
 import net.ccbluex.liquidbounce.utils.extensions.tryJump
 
-object Rewi : NoWebMode("Rewi") {
-    override fun onUpdate() {
+object NoWebRewi : NoWebMode("Rewi") {
+    private val onUpdate = handler<UpdateEvent> {
         if (!mc.thePlayer.isInWeb) {
-            return
+            return@handler
         }
         mc.thePlayer.jumpMovementFactor = 0.42f
 

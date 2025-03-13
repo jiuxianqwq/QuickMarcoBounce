@@ -1,13 +1,14 @@
 package net.ccbluex.liquidbounce.config
 
 import net.ccbluex.liquidbounce.event.Listenable
+import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
 
 /**
  * @author yuchenxue
  * @date 2025/02/10
  */
 
-abstract class Choice(name: String) : Configurable(name), Listenable {
+abstract class Choice(name: String) : Configurable(name), Listenable, MinecraftInstance {
 
     abstract val choices: ChoiceConfigurable<*>
 

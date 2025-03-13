@@ -12,19 +12,21 @@ open class ChoiceConfigurable<T: Choice>(
     val choices: Array<T>,
     default: T = choices[0],
     val listenable: Listenable? = null,
-    displayable: (() -> Boolean)? = null
+    displayable: (() -> Boolean) = { true }
 ) : Configurable(name) {
     var current = default
 
-    val mode by +ListValue(name, choices.map { it.name }.toTypedArray(), default.name)
+    val select by +ListValue(name, choices.map { it.name }.toTypedArray(), default.name)
         .onChange { old, new ->
-            choices.find { it.name == old }?.disable()
-            val newChoice = choices.find { it.name == new } ?: choices[0]
-            current = newChoice.apply { enable() }
+            choices.find { it.name.equals(old, true) }?.disable()
             new
         }
+        .onChanged { new ->
+            val newChoice = choices.find { it.name.equals(new, true)} ?: choices[0]
+            current = newChoice.apply { enable() }
+        }
         .setSupport {
-            displayable?.invoke() ?: true
+            displayable.invoke()
         }
 
     override val values: MutableList<Value<*>>

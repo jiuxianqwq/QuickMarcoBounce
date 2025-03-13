@@ -5,49 +5,25 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
-import net.ccbluex.liquidbounce.event.UpdateEvent
-import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.aac.AAC
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.aac.LAAC
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.intave.IntaveNew
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.intave.IntaveOld
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other.None
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other.OldGrim
-import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other.Rewi
+import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.aac.*
+import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.grim.NoWebOldGrim
+import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.intave.*
+import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other.*
 
 object NoWeb : Module("NoWeb", Category.MOVEMENT) {
 
-    private val noWebModes = arrayOf(
-        // Vanilla
-        None,
-
-        // AAC
-        AAC, LAAC,
-
-        // Intave
-        IntaveOld,
-        IntaveNew,
-
-        // Other
-        Rewi,
-        OldGrim
-    )
-
-    private val modes = noWebModes.map { it.modeName }.toTypedArray()
-
-    val mode by choices(
-        "Mode", modes, "None"
-    )
-
-    val onUpdate = handler<UpdateEvent> {
-        modeModule.onUpdate()
-    }
+    val mode = choices("Mode", arrayOf(
+        NoWebNone,
+        NoWebAAC,
+        NoWebLAAC,
+        NoWebIntaveOld,
+        NoWebIntaveNew,
+        NoWebOldGrim,
+        NoWebRewi
+    ), NoWebNone)
 
     override val tag
-        get() = mode
-
-    private val modeModule
-        get() = noWebModes.find { it.modeName == mode }!!
+        get() = mode.select
 }

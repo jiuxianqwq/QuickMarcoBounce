@@ -5,10 +5,12 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.other
 
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.NoWebMode
 
-object None : NoWebMode("None") {
-    override fun onUpdate() {
+object NoWebNone : NoWebMode("None") {
+    private val onUpdate = handler<UpdateEvent> {
         mc.thePlayer.isInWeb = false
     }
 }

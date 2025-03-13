@@ -5,17 +5,19 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.intave
 
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.modules.movement.nowebmodes.NoWebMode
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils.strafe
 
-object IntaveNew : NoWebMode("IntaveNew") {
-    override fun onUpdate() {
-        val thePlayer = mc.thePlayer ?: return
+object NoWebIntaveNew : NoWebMode("IntaveNew") {
+    private val onUpdate = handler<UpdateEvent> {
+        val thePlayer = mc.thePlayer ?: return@handler
 
         if (!thePlayer.isInWeb) {
-            return
+            return@handler
         }
 
         if (thePlayer.isMoving && thePlayer.moveStrafing == 0.0f) {

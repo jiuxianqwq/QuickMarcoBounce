@@ -197,7 +197,7 @@ open class Module(
         name: String,
         array: Array<T>,
         value: T = array[0],
-        display: (() -> Boolean)? = null
+        display: (() -> Boolean) = { true }
     ) = ChoiceConfigurable(name, array, value, this, display).apply {
         tree(this)
     }
