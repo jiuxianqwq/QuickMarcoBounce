@@ -421,7 +421,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
 
         if (clickOnly && !mc.gameSettings.keyBindAttack.isKeyDown) return@handler
 
-        if (blockStatus && autoBlock == "Packet" && releaseAutoBlock && !ignoreTickRule) {
+        if (blockStatus && (autoBlock == "Packet" || autoBlock == "QuickMarco") && releaseAutoBlock && !ignoreTickRule) {
             clicks = 0
             stopBlocking()
             return@handler
@@ -818,7 +818,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
 
         if (shouldPrioritize()) return
 
-        if (thePlayer.isBlocking && (autoBlock == "Off" && blockStatus || autoBlock == "Packet" && releaseAutoBlock)) {
+        if (thePlayer.isBlocking && (autoBlock == "Off" && blockStatus || (autoBlock == "Packet" || autoBlock == "QuickMarco") && releaseAutoBlock)) {
             stopBlocking()
 
             if (!ignoreTickRule || autoBlock == "Off") {
@@ -849,12 +849,10 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
         if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
         }
-        if (autoBlock != "Off" && slotChangeAutoBlock && (!blinked || !BlinkUtils.isBlinking)) {
-            if(autoBlock == "QuickMarco"){
-                sendOffHandUseItem()
-            }else if (autoBlock == "Packet") {
-                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-            }
+        if (autoBlock != "Off" && slotChangeAutoBlock && (!blinkAutoBlock || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
+            blockStatus = false
+            renderBlocking = false
+            startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
             slotChangeAutoBlock = false
 //            chat("发送防砍包")
         }
