@@ -92,7 +92,8 @@ object Speed : Module("Speed", Category.MOVEMENT) {
         OnGround,
         SlowHop,
         Legit,
-        CustomSpeed
+        CustomSpeed,
+        GrimAC
     )
 
     /**
@@ -178,6 +179,9 @@ object Speed : Module("Speed", Category.MOVEMENT) {
     val damageLowHop by boolean("DamageLowHop", false) { mode.get() == "BlocksMCHop" }
     val safeY by boolean("SafeY", true) { mode.get() == "BlocksMCHop" }
 
+//    GrimAC Speed
+val speed by float("BoostSpeed", 0.08F, 0.01F..0.08F, "b/t") { mode.get() == "GrimAC" }
+
     val onUpdate = handler<UpdateEvent> {
         val thePlayer = mc.thePlayer ?: return@handler
 
@@ -214,6 +218,14 @@ object Speed : Module("Speed", Category.MOVEMENT) {
             return@handler
 
         modeModule.onTick()
+    }
+
+
+    val onPlayerTick = handler<PlayerTickEvent> {
+        if (mc.thePlayer?.isSneaking == true)
+            return@handler
+
+        modeModule.onPlayerTick()
     }
 
     val onStrafe = handler<StrafeEvent> {
@@ -264,5 +276,5 @@ object Speed : Module("Speed", Category.MOVEMENT) {
 
     private val sprintManually
         // Maybe there are more but for now there's the Legit mode.get().
-        get() = modeModule in arrayOf(Legit)
+        get() = modeModule in arrayOf(Legit) || modeModule in arrayOf(GrimAC)
 }

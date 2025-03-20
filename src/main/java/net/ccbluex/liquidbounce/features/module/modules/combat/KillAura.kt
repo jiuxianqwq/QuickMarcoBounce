@@ -6,13 +6,16 @@
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
 import net.ccbluex.liquidbounce.LiquidBounce
+import net.ccbluex.liquidbounce.LiquidBounce.hud
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
+import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.features.module.modules.world.Fucker
 import net.ccbluex.liquidbounce.features.module.modules.world.Nuker
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.*
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.attack.CooldownHelper.getAttackCooldownProgress
 import net.ccbluex.liquidbounce.utils.attack.CooldownHelper.resetLastAttackedTicks
@@ -202,7 +205,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
     private val maxSwingProgress by int("MaxOpponentSwingProgress", 1, 0..5) { smartAutoBlock }
 
     // Rotations
-    private val options = RotationSettings(this).withoutKeepRotation()
+    val options = RotationSettings(this).withoutKeepRotation()
 
     // Raycast
     private val raycastValue = boolean("RayCast", true) { options.rotationsActive }
@@ -483,7 +486,6 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
             }
             if (player.getDistanceToEntityBox(target!!) <= blockMaxRange && !blockStatus) {
                 if (autoBlock != "Off" && !releaseAutoBlock) {
-                    renderBlocking = true
                     if (autoBlock != "Off" && (!blinkAutoBlock  || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
                         startBlocking(target!!, interactAutoBlock, autoBlock == "Fake")
                     }
@@ -846,12 +848,11 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
         }
 
         // Start blocking after attack
-        if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
+        if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && (isLastClick || autoBlock == "QuickMarco" ) || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
         }
-        if (autoBlock != "Off" && slotChangeAutoBlock && (!blinkAutoBlock || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
+        if (autoBlock != "Off" && (slotChangeAutoBlock || Gapple.eating) && (!blinkAutoBlock || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             blockStatus = false
-            renderBlocking = false
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
             slotChangeAutoBlock = false
 //            chat("发送防砍包")
@@ -1041,7 +1042,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
     private fun startBlocking(interactEntity: Entity, interact: Boolean, fake: Boolean = false) {
         val player = mc.thePlayer ?: return
 
-        if (blockStatus && (!uncpAutoBlock || !blinkAutoBlock) || shouldPrioritize()) return
+        if ((blockStatus) && (!uncpAutoBlock || !blinkAutoBlock) || shouldPrioritize()) return
 
         if (mc.thePlayer.isBlocking) {
             blockStatus = true
@@ -1077,11 +1078,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
                 switchToSlot((SilentHotbar.currentSlot + 1) % 9)
             }
             if(autoBlock == "QuickMarco"){
-
-                for (i in 1..5) {
-                    blockStatus = false
-                    sendOffHandUseItem()
-                }
+                sendOffHandUseItem()
                 blockStatus = true
             }else {
                 sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
@@ -1150,7 +1147,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
             return@handler
         }
 
-        if (Blink.blinkingSend() || Blink.blinkingReceive()) {
+        if (Blink.state || Blink.state) {
             BlinkUtils.unblink()
             return@handler
         }
@@ -1213,6 +1210,7 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
         !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
 
         activationSlot && SilentHotbar.currentSlot != preferredSlot - 1 -> true
+        Blink.state -> true
 
         else -> false
     }
@@ -1301,6 +1299,15 @@ object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R) {
 
     val isBlockingChestAura
         get() = handleEvents() && target != null
+
+    val onKey = handler<KeyEvent> { event ->
+        val player = mc.thePlayer ?: return@handler
+
+        if (event.key.equals(Keyboard.KEY_LMENU)){
+            this.options.strict = !this.options.strict
+            hud.addNotification(Notification.informative(this, "Strict Mode " + if (this.options.strict) "Enabled" else "Disabled", 500L))
+        }
+    }
 }
 
 data class SwingFailData(val vec3: Vec3, val startTime: Long)

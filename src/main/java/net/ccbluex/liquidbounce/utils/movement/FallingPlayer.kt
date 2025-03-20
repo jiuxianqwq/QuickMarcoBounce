@@ -20,7 +20,7 @@ import kotlin.math.sqrt
 
 class FallingPlayer(
     private var x: Double = mc.thePlayer.posX,
-    private var y: Double = mc.thePlayer.posY,
+    var y: Double = mc.thePlayer.posY,
     private var z: Double = mc.thePlayer.posZ,
     private var motionX: Double = mc.thePlayer.motionX,
     private var motionY: Double = mc.thePlayer.motionY,
@@ -81,6 +81,12 @@ class FallingPlayer(
             }
         }
         return null
+    }
+
+    fun calculate(ticks: Int){
+        repeat(ticks){
+            calculateForTick()
+        }
     }
 
     private fun rayTrace(start: Vec3, end: Vec3): BlockPos? {

@@ -19,6 +19,7 @@ import net.ccbluex.liquidbounce.utils.kotlin.StringUtils.contains
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.passive.EntityVillager
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
@@ -31,6 +32,7 @@ object EntityUtils : MinecraftInstance {
     object Targets : Configurable("Targets") {
         var player by boolean("Player", true)
         var mob by boolean("Mob", true)
+        var villager by boolean("Villager", false)
         var animal by boolean("Animal", false)
         var invisible by boolean("Invisible", false)
         var dead by boolean("Dead", false)
@@ -39,7 +41,7 @@ object EntityUtils : MinecraftInstance {
     private val healthSubstrings = arrayOf("hp", "health", "❤", "lives")
 
     fun isSelected(entity: Entity?, canAttackCheck: Boolean): Boolean {
-        if (entity is EntityLivingBase && (Targets.dead || entity.isEntityAlive) && entity != mc.thePlayer) {
+        if (entity is EntityLivingBase && (Targets.dead || entity.isEntityAlive) && entity != mc.thePlayer && entity.name != mc.thePlayer.name) {
             if (Targets.invisible || !entity.isInvisible) {
                 if (Targets.player && entity is EntityPlayer) {
                     if (canAttackCheck) {
@@ -56,7 +58,7 @@ object EntityUtils : MinecraftInstance {
                     return true
                 }
 
-                return Targets.mob && entity.isMob() || Targets.animal && entity.isAnimal()
+                return (Targets.mob && entity.isMob() && entity !is EntityVillager) || Targets.animal && entity.isAnimal() || entity is EntityVillager && Targets.villager
             }
         }
         return false

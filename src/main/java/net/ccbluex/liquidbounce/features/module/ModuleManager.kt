@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
+import net.ccbluex.liquidbounce.features.module.modules.world.Scaffold2
 import net.ccbluex.liquidbounce.event.EventManager.unregisterListener
 import net.ccbluex.liquidbounce.event.KeyEvent
 import net.ccbluex.liquidbounce.event.Listenable
@@ -179,6 +180,7 @@ object ModuleManager : Listenable, Collection<Module> by MODULE_REGISTRY {
             Rotations,
             SafeWalk,
             Scaffold,
+            Scaffold2,
             ServerCrasher,
             SkinDerp,
             SlimeJump,

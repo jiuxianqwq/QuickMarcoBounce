@@ -5,8 +5,10 @@
  */
 package net.ccbluex.liquidbounce.utils.extensions
 
+import akka.actor.Kill
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import de.florianmichael.vialoadingbase.ViaLoadingBase
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.file.FileManager.friendsConfig
 import net.ccbluex.liquidbounce.injection.implementations.IMixinEntity
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
@@ -15,9 +17,12 @@ import net.ccbluex.liquidbounce.utils.block.toVec
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.inventory.SilentHotbar
+import net.ccbluex.liquidbounce.utils.movement.DirectionalInput
 import net.ccbluex.liquidbounce.utils.movement.MovementUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
 import net.ccbluex.liquidbounce.utils.rotation.Rotation
+import net.ccbluex.liquidbounce.utils.rotation.RotationUtils
+import net.ccbluex.liquidbounce.utils.rotation.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.rotation.RotationUtils.getFixedSensitivityAngle
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.Entity
@@ -35,10 +40,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
 import net.minecraftforge.event.ForgeEventFactory
 
 /**
@@ -331,4 +333,85 @@ fun EntityPlayerSP.attackEntityWithModifiedSprint(
    if (ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) swing()
 
     CPSCounter.registerClick(CPSCounter.MouseButton.LEFT)
+}
+
+//fun Entity.getCustomPositionVector(): Vector3d {
+//    return Vector3d(posX, posY, posZ)
+//}
+
+fun Entity.getPositionEyes(partialTicks: Float): Vec3 {
+    if (partialTicks == 1.0f) {
+        return Vec3(this.posX, this.posY + this.getEyeHeight().toDouble(), this.posZ)
+    } else {
+        val d0: Double = this.prevPosX + (this.posX - this.prevPosX) * partialTicks.toDouble()
+        val d1: Double =
+            this.prevPosY + ((this.posY - this.prevPosY) * partialTicks.toDouble()) + (this.getEyeHeight().toDouble())
+        val d2: Double = this.prevPosZ + (this.posZ - this.prevPosZ) * partialTicks.toDouble()
+        return Vec3(d0, d1, d2)
+    }
+}
+
+fun Entity.rayTrace(blockReachDistance: Double, partialTicks: Float): MovingObjectPosition {
+    val vec3: Vec3 = this.getPositionEyes(partialTicks)
+    val vec31: Vec3 = this.getLook(partialTicks)
+    val vec32 = vec3.addVector(
+        vec31.xCoord * blockReachDistance,
+        vec31.yCoord * blockReachDistance,
+        vec31.zCoord * blockReachDistance
+    )
+    return this.worldObj.rayTraceBlocks(vec3, vec32, false, false, true)
+}
+
+fun Entity.rayTraceCustom(blockReachDistance: Float, yaw: Float, pitch: Float): MovingObjectPosition {
+    val vec3: Vec3 = this.getPositionEyes(1.0f)
+    val vec31: Vec3 = this.getLookCustom(yaw, pitch)
+    val vec32 = vec3.addVector(
+        vec31.xCoord * blockReachDistance,
+        vec31.yCoord * blockReachDistance,
+        vec31.zCoord * blockReachDistance
+    )
+    return this.worldObj.rayTraceBlocks(vec3, vec32, false, false, true)
+}
+
+fun Entity.getLookCustom(yaw: Float, pitch: Float): Vec3 {
+    return this.getVectorForRotation(pitch, yaw)
+}
+
+fun Entity.getVectorForRotation(p_getVectorForRotation_1_: Float, p_getVectorForRotation_2_: Float): Vec3 {
+    val f = MathHelper.cos(-p_getVectorForRotation_2_ * 0.017453292f - 3.1415927f)
+    val f1 = MathHelper.sin(-p_getVectorForRotation_2_ * 0.017453292f - 3.1415927f)
+    val f2 = -MathHelper.cos(-p_getVectorForRotation_1_ * 0.017453292f)
+    val f3 = MathHelper.sin(-p_getVectorForRotation_1_ * 0.017453292f)
+    return Vec3((f1 * f2).toDouble(), f3.toDouble(), (f * f2).toDouble())
+}
+
+val EntityPlayerSP.direction: Float
+    get() = getMovementDirectionOfInput(DirectionalInput(movementInput))
+
+
+fun EntityPlayerSP.getMovementDirectionOfInput(input: DirectionalInput): Float {
+    return getMovementDirectionOfInput(if (KillAura.options.strict && currentRotation != null && KillAura.state) currentRotation!!.yaw else this.rotation.yaw, input)
+}
+
+fun getMovementDirectionOfInput(facingYaw: Float, input: DirectionalInput): Float {
+    var actualYaw = facingYaw
+    var forward = 1f
+
+    // Check if client-user tries to walk backwards (+180 to turn around)
+    if (input.backwards) {
+        actualYaw += 180f
+        forward = -0.5f
+    } else if (input.forwards) {
+        forward = 0.5f
+    }
+
+    // Check which direction the client-user tries to walk sideways
+    if (input.left) {
+        actualYaw -= 90f * forward
+    }
+    if (input.right) {
+        actualYaw += 90f * forward
+    }
+
+    return actualYaw
 }

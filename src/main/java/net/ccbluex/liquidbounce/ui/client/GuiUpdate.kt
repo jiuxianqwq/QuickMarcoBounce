@@ -23,6 +23,7 @@ class GuiUpdate : AbstractScreen() {
 
         +GuiButton(1, width / 2 + 2, j + 24 * 2, 98, 20, "Ignore")
         +GuiButton(2, width / 2 - 100, j + 24 * 2, 98, 20, "Go to download page")
+        mc.displayGuiScreen(GuiMainMenu())
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) = assumeNonVolatile {

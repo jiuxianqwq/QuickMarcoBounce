@@ -103,6 +103,9 @@ object ClickGui : GuiScreen() {
                 ButtonElement("Mobs", { if (Targets.mob) guiColor else Int.MAX_VALUE }) {
                     Targets.mob = !Targets.mob
                 },
+                ButtonElement("Villager", { if (Targets.villager) guiColor else Int.MAX_VALUE }) {
+                    Targets.villager = !Targets.villager
+                },
                 ButtonElement("Animals", { if (Targets.animal) guiColor else Int.MAX_VALUE }) {
                     Targets.animal = !Targets.animal
                 },

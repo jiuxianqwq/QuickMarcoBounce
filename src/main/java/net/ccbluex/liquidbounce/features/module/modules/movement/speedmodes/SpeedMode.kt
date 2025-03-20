@@ -15,6 +15,7 @@ open class SpeedMode(val modeName: String) : MinecraftInstance {
     open fun onUpdate() {}
     open fun onMove(event: MoveEvent) {}
     open fun onTick() {}
+    open fun onPlayerTick() {}
     open fun onStrafe() {}
     open fun onJump(event: JumpEvent) {}
     open fun onPacket(event: PacketEvent) {}

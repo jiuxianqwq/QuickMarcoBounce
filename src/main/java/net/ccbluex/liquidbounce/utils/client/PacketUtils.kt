@@ -15,7 +15,6 @@ import net.ccbluex.liquidbounce.utils.kotlin.removeEach
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.rotation.Rotation
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.network.NetworkManager
 import net.minecraft.network.Packet
 import net.minecraft.network.play.INetHandlerPlayClient
 import net.minecraft.network.play.client.C03PacketPlayer
@@ -24,7 +23,6 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.concurrent.write
 import kotlin.math.roundToInt
 
 object PacketUtils : MinecraftInstance, Listenable {
@@ -55,6 +53,10 @@ object PacketUtils : MinecraftInstance, Listenable {
                 }
             }
         }
+    }
+
+    fun isCPacket(packet: Packet<*>): Boolean {
+        return packet.javaClass.simpleName.startsWith("C")
     }
 
     val onPacket = handler<PacketEvent>(dispatcher = Dispatchers.Main, priority = 2) { event ->

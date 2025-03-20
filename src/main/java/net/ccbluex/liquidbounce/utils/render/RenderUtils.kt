@@ -1525,4 +1525,55 @@ object RenderUtils : MinecraftInstance {
         glPopMatrix()
         glPopAttrib()
     }
+
+    /**
+     * Draws a progress bar.
+     *
+     * @param x The x position of the progress bar.
+     * @param y The y position of the progress bar.
+     * @param width The width of the progress bar.
+     * @param height The height of the progress bar.
+     * @param progress The progress value (0.0 to 1.0).
+     * @param color The color of the progress bar.
+     * @param backgroundColor The background color of the progress bar.
+     * @param borderColor The border color of the progress bar.
+     * @param radius The radius of the rounded corners.
+     */
+    fun drawProgressBar(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        progress: Float,
+        color: Color,
+        backgroundColor: Color = Color(0, 0, 0, 100),
+        borderColor: Color = Color(0, 0, 0, 150),
+        radius: Float = 0f
+    ) {
+
+        // Clamp progress between 0.0 and 1.0
+        val clampedProgress = progress.coerceIn(0f, 1f)
+
+        // Draw background
+        if (radius > 0) {
+            drawRoundedRect(x, y, x + width, y + height, backgroundColor.rgb, radius)
+        } else {
+            drawRect(x, y, x + width, y + height, backgroundColor.rgb)
+        }
+
+        // Draw progress
+        val progressWidth = width * clampedProgress
+        if (radius > 0) {
+            drawRoundedRect(x, y, x + progressWidth, y + height, color.rgb, radius)
+        } else {
+            drawRect(x, y, x + progressWidth, y + height, color.rgb)
+        }
+
+        // Draw border
+        if (radius > 0) {
+            drawRoundedBorder(x, y, x + width, y + height, 1f, borderColor.rgb, radius)
+        } else {
+            drawBorder(x, y, x + width, y + height, 1f, borderColor.rgb)
+        }
+    }
 }

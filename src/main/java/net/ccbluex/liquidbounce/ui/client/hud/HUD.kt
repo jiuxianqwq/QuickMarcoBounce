@@ -24,6 +24,10 @@ object HUD : MinecraftInstance {
 
     val elements = mutableListOf<Element>()
     val notifications = mutableListOf<Notification>()
+    var progressBarProgress = 0F
+    var progressBarTitle = ""
+    var progressBarText = ""
+    var progressBarShouldRender = false
 
     private val ALL_ELEMENT_CLASSES = arrayOf(
         Armor::class.java,
@@ -33,6 +37,7 @@ object HUD : MinecraftInstance {
         Inventory::class.java,
         Model::class.java,
         Notifications::class.java,
+        ProgressBar::class.java,
         TabGUI::class.java,
         Text::class.java,
         ScoreboardElement::class.java,

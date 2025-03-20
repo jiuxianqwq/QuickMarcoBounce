@@ -64,7 +64,7 @@ open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true 
     val maxThresholdAttemptsToStop by maxThresholdAttemptsToStopValue
     val shortStopDuration by shortStopDurationValue
     val strafe by strafeValue
-    val strict by strictValue
+    var strict by strictValue
     val keepRotation by keepRotationValue
     val resetTicks by resetTicksValue
     val legitimize by legitimizeValue

@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.block.*
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.client.chat
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.blocksAmount
@@ -466,6 +467,11 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I) {
     }
 
     val onTick = handler<GameTickEvent> {
+
+//        if (jumpOnUserInput && mc.gameSettings.keyBindJump.isKeyDown){
+//            mc.gameSettings.keyBindJump.pressed = false
+//        }
+
         val target = placeRotation?.placeInfo
 
         val raycastProperly = !(scaffoldMode == "Expand" && expandLength > 1 || shouldGoDown) && options.rotationsActive
@@ -529,6 +535,11 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I) {
         val player = mc.thePlayer ?: return@handler
 
         if (!isGodBridgeEnabled || !player.onGround) return@handler
+
+//        if (jumpOnUserInput && mc.gameSettings.keyBindJump.pressed && event.originalInput.jump) {
+//            event.originalInput.jump = false
+//            chat("取消跳跃")
+//        }
 
         if (waitForRots) {
             godBridgeTargetRotation?.run {
@@ -1245,4 +1256,6 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I) {
         get() = if (towerMode != "None") ("$scaffoldMode | $towerMode") else scaffoldMode
 
     data class ExtraClickInfo(val delay: Int, val lastClick: Long, var clicks: Int)
+
+
 }

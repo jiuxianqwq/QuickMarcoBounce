@@ -11,6 +11,9 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.autoBlock
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.blinked
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.slotChangeAutoBlock
+import net.ccbluex.liquidbounce.ui.client.hud.HUD.progressBarProgress
+import net.ccbluex.liquidbounce.ui.client.hud.HUD.progressBarText
+import net.ccbluex.liquidbounce.ui.client.hud.HUD.progressBarTitle
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.client.PacketUtils
 import net.ccbluex.liquidbounce.utils.client.PacketUtils.sendPacket
@@ -33,8 +36,8 @@ object Gapple : Module("Gapple",Category.PLAYER) {
     private val stuck by boolean("Stuck",false)
     private val stopMove by boolean("StopMove",false)
 
-    var noCancelC02 = false//
-    var noC02 = false//这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
+    var noCancelC02 by boolean("NoCancelC02", false)
+    var noC02 by boolean("NoC02", false) //这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
 
     private val autoGapple by boolean("AutoGapple", false)
 
@@ -57,6 +60,8 @@ object Gapple : Module("Gapple",Category.PLAYER) {
         if (slot != -1) {
             slot = slot - 36
         }
+        progressBarTitle = "Gapple"
+        progressBarProgress = 0f
     }
 
 
@@ -72,9 +77,17 @@ object Gapple : Module("Gapple",Category.PLAYER) {
         if (stuck) {
             StuckUtils.stopStuck()
         }
+
+        progressBarTitle = ""
+        progressBarProgress = 0f
+        progressBarText = ""
     }
 
     val onTick = handler<PreTickEvent> {
+
+        progressBarTitle = "Gapple"
+        progressBarText = c03s.toString() + " / 32"
+        progressBarProgress = c03s / 32f
         if(mc.thePlayer.health < heal) {
             if (!eating) {
                 target = KillAura.target

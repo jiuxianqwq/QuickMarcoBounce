@@ -268,7 +268,7 @@ public abstract class MixinNetHandlerPlayClient {
     @Redirect(method = "handlePlayerPosLook", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/NetworkManager;sendPacket(Lnet/minecraft/network/Packet;)V"))
     private void injectNoRotateSetAndAntiServerRotationOverride(NetworkManager instance, Packet p_sendPacket_1_) {
         Blink module2 = Blink.INSTANCE;
-        boolean shouldTrigger = module2.blinkingSend();
+        boolean shouldTrigger = false;
         PacketUtils.sendPacket(p_sendPacket_1_, shouldTrigger);
 
         EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;

@@ -205,7 +205,7 @@ object FakeLag : Module("FakeLag", Category.COMBAT, gameDetecting = false) {
             }
         }
 
-        if (Blink.blinkingSend() || player.isDead || player.isUsingItem) {
+        if (Blink.state || player.isDead || player.isUsingItem) {
             blink()
             return@handler
         }
@@ -219,7 +219,7 @@ object FakeLag : Module("FakeLag", Category.COMBAT, gameDetecting = false) {
     val onRender3D = handler<Render3DEvent> { event ->
         val player = mc.thePlayer ?: return@handler
 
-        if (Blink.blinkingSend() || positions.isEmpty()) {
+        if (Blink.state || positions.isEmpty()) {
             renderData.reset(player)
             return@handler
         }

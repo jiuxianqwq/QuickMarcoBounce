@@ -173,8 +173,9 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                     if (event.eventState == EventState.PRE) {
                         sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                     } else {
-                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
-                        sendOffHandUseItem.sendOffHandUseItem()
+                        repeat(5) {
+                            sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
+                        }
                     }
 
                 "grimac" ->
@@ -183,8 +184,9 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                         mc.netHandler.addToSendQueue(C17PacketCustomPayload("许锦良", PacketBuffer(Unpooled.buffer())))
                         mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
                     } else {
-                        sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
-                        sendOffHandUseItem.sendOffHandUseItem()
+                        repeat(5) {
+                            sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
+                        }
                     }
 
 

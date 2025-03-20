@@ -40,7 +40,7 @@ object PanicCommand : Command("panic") {
                 }
             }
         } else {
-            chatSyntax("panic <all/nonrender/combat/player/movement/render/world/misc/exploit/fun>")
+            chatSyntax("panic <all/nonrender/combat/player/movement/render/world/math/exploit/fun>")
             return
         }
 
@@ -54,7 +54,7 @@ object PanicCommand : Command("panic") {
         if (args.isEmpty()) return emptyList()
 
         return when (args.size) {
-            1 -> listOf("all", "nonrender", "combat", "player", "movement", "render", "world", "misc", "exploit", "fun")
+            1 -> listOf("all", "nonrender", "combat", "player", "movement", "render", "world", "math", "exploit", "fun")
                 .filter { it.startsWith(args[0], true) }
 
             else -> emptyList()

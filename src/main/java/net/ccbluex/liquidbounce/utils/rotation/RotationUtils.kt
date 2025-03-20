@@ -17,6 +17,7 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextDouble
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextFloat
+import net.ccbluex.liquidbounce.utils.math.Vec3d
 import net.ccbluex.liquidbounce.utils.rotation.RaycastUtils.raycastEntity
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.minecraft.entity.Entity
@@ -81,7 +82,8 @@ object RotationUtils : MinecraftInstance, Listenable {
         blockPos: BlockPos?,
         throughWalls: Boolean = true,
         targetUpperFace: Boolean = false,
-        hRange: ClosedFloatingPointRange<Double> = 0.0..1.0
+        hRange: ClosedFloatingPointRange<Double> = 0.0..1.0,
+        predict: Float = 0f // 新增的 predict 参数
     ): VecRotation? {
         val world = mc.theWorld ?: return null
         val player = mc.thePlayer ?: return null
@@ -90,7 +92,8 @@ object RotationUtils : MinecraftInstance, Listenable {
 
         val block = blockPos.block ?: return null
 
-        val eyesPos = player.eyes
+        // 使用 predict 参数计算玩家眼睛的位置
+        val eyesPos = player.getPositionEyes(predict)
         val startPos = Vec3(blockPos)
 
         var visibleVec: VecRotation? = null
@@ -783,4 +786,20 @@ object RotationUtils : MinecraftInstance, Listenable {
             else -> point
         }
     }
+
+    fun getRotationBlock(pos: BlockPos, predict: Float): Rotation {
+        val from = mc.thePlayer.getPositionEyes(predict)
+        val to = Vec3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
+        val diff = to.subtract(Vec3d(from));
+
+        val yaw = MathHelper.wrapAngleTo180_float(
+            Math.toDegrees(atan2(diff.z, diff.x)).toFloat() - 90f
+        );
+        val pitch = MathHelper.wrapAngleTo180_float(
+            (-Math.toDegrees(atan2(diff.y, sqrt(diff.x * diff.x + diff.z * diff.z)))).toFloat()
+        );
+        return Rotation(yaw, pitch)
+    }
+
+
 }

@@ -9,7 +9,9 @@ import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_AUTHOR
 import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.ccbluex.liquidbounce.LiquidBounce.clientCommit
 import net.ccbluex.liquidbounce.LiquidBounce.clientVersionText
+import net.ccbluex.liquidbounce.event.AttackEvent
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.blockStatus
+import net.ccbluex.liquidbounce.features.module.modules.world.Scaffold2
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
@@ -304,7 +306,7 @@ class Text(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F, side: Side = S
         )
 
         assumeNonVolatile {
-            if ((Scaffold.handleEvents() && onScaffold) || !onScaffold || mc.currentScreen is GuiHudDesigner) {
+            if (((Scaffold.handleEvents() || Scaffold2.handleEvents()) && onScaffold) || !onScaffold || mc.currentScreen is GuiHudDesigner) {
                 val rainbow = textColorMode == "Rainbow"
                 val gradient = textColorMode == "Gradient"
 

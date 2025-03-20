@@ -40,7 +40,7 @@ import net.minecraft.util.BlockPos
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 
-object Fly : Module("Fly", Category.MOVEMENT, Keyboard.KEY_F) {
+object Fly : Module("Fly", Category.MOVEMENT) {
     private val flyModes = arrayOf(
         Vanilla, SmoothVanilla,
 

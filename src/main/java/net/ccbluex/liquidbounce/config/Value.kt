@@ -18,7 +18,7 @@ private typealias OnChangedHandler<T> = (new: T) -> Unit
 sealed class Value<T>(
     val name: String,
     protected var value: T,
-    val suffix: String? = null,
+    open val suffix: String? = null,
     protected var default: T = value,
 ) : ReadWriteProperty<Any?, T> {
 

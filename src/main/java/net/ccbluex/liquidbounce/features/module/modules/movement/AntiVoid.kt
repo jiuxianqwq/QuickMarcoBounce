@@ -202,7 +202,7 @@ object AntiVoid : Module("AntiVoid", Category.MOVEMENT) {
             return@handler
         }
 
-        if (Blink.blinkingSend() || Blink.blinkingReceive()) {
+        if (Blink.state) {
             BlinkUtils.unblink()
             return@handler
         }

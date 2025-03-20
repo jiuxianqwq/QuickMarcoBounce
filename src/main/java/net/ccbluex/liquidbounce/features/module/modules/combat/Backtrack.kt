@@ -118,7 +118,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT) {
             return@handler
         }
 
-        if (Blink.blinkingReceive() || event.isCancelled) return@handler
+        if (Blink.state || event.isCancelled) return@handler
 
         when (mode.lowercase()) {
             "legacy" -> {
@@ -245,7 +245,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT) {
 
         if (mode == "Modern") {
             if (shouldBacktrack() && targetMixin != null) {
-                if (!Blink.blinkingReceive() && targetMixin.truePos) {
+                if (!Blink.state && targetMixin.truePos) {
                     val trueDist = mc.thePlayer.getDistance(targetMixin.trueX, targetMixin.trueY, targetMixin.trueZ)
                     val dist = mc.thePlayer.getDistance(target.posX, target.posY, target.posZ)
 
