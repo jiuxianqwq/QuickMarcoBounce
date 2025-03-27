@@ -449,7 +449,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                             mc.thePlayer.motionX *= reduceXZ
                             mc.thePlayer.motionZ *= reduceXZ
                         }
-                        if (mc.thePlayer.hurtTime === 0) {
+                        if (mc.thePlayer.hurtTime == 0) {
                             velocityInput = false
                         }
                     }

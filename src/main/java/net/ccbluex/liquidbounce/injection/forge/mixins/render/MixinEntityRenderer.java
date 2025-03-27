@@ -115,6 +115,10 @@ public abstract class MixinEntityRenderer {
             callbackInfo.cancel();
         }
     }
+    @ModifyConstant(method = "orientCamera", constant = @Constant(intValue = 8))
+    private int injectCameraClip(int eight) {
+        return CameraClip.INSTANCE.handleEvents() ? 0 : eight;
+    }
     @Unique
     public double prevRenderX = 0d;
     @Unique
@@ -130,14 +134,12 @@ public abstract class MixinEntityRenderer {
         double d1 = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)p_orientCamera_1_ + (double)f;
         double d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)p_orientCamera_1_;
         double currentInterpolation = 0.5f;
-        if(camera.isActive() && camera.getMotionCamera().get()){
-            currentInterpolation = camera.getInterpolation().get();
+        if(camera.isActive() && camera.getState()){
+            currentInterpolation = camera.getInterpolation();
         }
-        if(camera!=null){
-            prevRenderX = prevRenderX + (d0 - prevRenderX) * currentInterpolation;
-            prevRenderY = prevRenderY + (d1-prevRenderY) * currentInterpolation;
-            prevRenderZ = prevRenderZ + (d2-prevRenderZ) * currentInterpolation;
-        }
+        prevRenderX = prevRenderX + (d0 - prevRenderX) * currentInterpolation;
+        prevRenderY = prevRenderY + (d1-prevRenderY) * currentInterpolation;
+        prevRenderZ = prevRenderZ + (d2-prevRenderZ) * currentInterpolation;
         if (entity instanceof EntityLivingBase && ((EntityLivingBase)entity).isPlayerSleeping()) {
             f = (float)((double)f + (double)1.0F);
             GlStateManager.translate(0.0F, 0.3F, 0.0F);
@@ -220,10 +222,6 @@ public abstract class MixinEntityRenderer {
         d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)p_orientCamera_1_;
         this.cloudFog = this.mc.renderGlobal.hasCloudFog(d0, d1, d2, p_orientCamera_1_);
         ci.cancel();
-    }
-    @ModifyConstant(method = "orientCamera", constant = @Constant(intValue = 8))
-    private int injectCameraClip(int eight) {
-        return CameraClip.INSTANCE.handleEvents() ? 0 : eight;
     }
 
     @Inject(at = @At("HEAD"), method = "updateCameraAndRender")

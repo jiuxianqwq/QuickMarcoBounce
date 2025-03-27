@@ -61,7 +61,6 @@ import net.ccbluex.liquidbounce.utils.rotation.RotationUtils
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
-import op.wawa.opacketfix.features.hytpacket.PacketManager
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import javax.swing.UIManager
@@ -158,7 +157,7 @@ object LiquidBounce {
      */
     fun startClient() {
         // when Minecraft start end
-        PacketManager().init()
+//        PacketManager().init()
         isStarting = true
 
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
